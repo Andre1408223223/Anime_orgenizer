@@ -26,7 +26,7 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
      highest_score = 0
  
      for show in series_list:
-         score = fuzz.ratio(show["title"].lower(), title.lower())
+         score = fuzz.token_set_ratio(show["title"].lower(), title.lower())
          if score > highest_score and score >= threshold:
              highest_score = score
              best_match = show
