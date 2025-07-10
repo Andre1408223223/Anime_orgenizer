@@ -75,15 +75,55 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
         if response.status_code != 200:
             log(f"Failed to remove '{series_title}': {response.status_code} - {response.text}")
 
-    avalible_sonnar = True
-    id = get_id_from_title(series_title)
+    if isinstance(series_title, list):
+     avalible_sonnar = True
+     episodes_data = []
 
-    if not id:
+     for serie in series_title:
+        anime = serie['anime']
+        season = serie['season']
+        episode = serie['episode']
+
+        id = get_id_from_title(anime)
+
+        if not id:
+         add_to_sonnar(anime)
+         id = get_id_from_title(anime)
+         avalible_sonnar = False
+
+
+        url = f"{SONARR_URL}/api/v3/episode?seriesId={id}"
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
+        episodes = response.json() 
+
+        for ep in episodes:
+            if ep["seasonNumber"] == season and ep["episodeNumber"] == episode:
+                episode_data = {
+                    "title": ep.get("title", 'Unknown Title'),
+                    "season": season,
+                    "episode": episode,
+                    "description": ep.get("overview", 'No description available.'),
+                    "airDate": ep.get("airDate", 'Unknown Air Date'),
+                }
+
+                episodes_data.append(episode_data)
+
+     if not avalible_sonnar:
+        remove_from_sonnar(anime)   
+        
+     return  episodes_data        
+
+    else: 
+     avalible_sonnar = True
+     id = get_id_from_title(series_title)
+
+     if not id:
         add_to_sonnar(series_title)
         id = get_id_from_title(series_title)
         avalible_sonnar = False
 
-    if season_number is not None and episode_number is not None:
+     if season_number is not None and episode_number is not None:
         time.sleep(10)
         url = f"{SONARR_URL}/api/v3/episode?seriesId={id}"
         response = requests.get(url, headers=HEADERS)
@@ -101,7 +141,7 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
                 if not avalible_sonnar:
                     remove_from_sonnar(series_title)
                 return episode_data
-    else:
+     else:
         url = f"{SONARR_URL}/api/v3/series/{id}"
         response = requests.get(url, headers=HEADERS)
         response.raise_for_status()
