@@ -1,8 +1,8 @@
 import requests
 from datetime import datetime
 import os
-import json
 import time
+from fuzzywuzzy import fuzz
 from config import SONARR_URL, API_KEY, HEADERS, ROOT_FOLDER, QUALITY_PROFILE_ID
 
 
@@ -16,15 +16,24 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
             file.write(new_log)
         print(new_log)
 
-    def get_id_from_title(title):
-        url = f"{SONARR_URL}/api/v3/series"
-        response = requests.get(url, headers=HEADERS)
-        response.raise_for_status()
-        series_list = response.json()
-        for show in series_list:
-            if show["title"].lower() == title.lower():
-                return show["id"]
-        return None
+    def get_id_from_title(title, threshold=80):
+     url = f"{SONARR_URL}/api/v3/series"
+     response = requests.get(url, headers=HEADERS)
+     response.raise_for_status()
+     series_list = response.json()
+ 
+     best_match = None
+     highest_score = 0
+ 
+     for show in series_list:
+         score = fuzz.ratio(show["title"].lower(), title.lower())
+         if score > highest_score and score >= threshold:
+             highest_score = score
+             best_match = show
+ 
+     if best_match:
+         return best_match["id"]
+     return None
 
     def add_to_sonnar(series_title):
         headers = {
@@ -125,5 +134,6 @@ def save_to_json(data, filename):
         json.dump(existing_data, f, indent=4, ensure_ascii=False)
 
 # Example usage
-metadata = get_metadata_sonnar("Solo leveling")
-save_to_json(metadata, "metadata.json")
+if __name__ == "__main__":
+ metadata = get_metadata_sonnar("My Instant Death Ability Is Overpowered", 1, 1)
+ save_to_json(metadata, "metadata.json")
