@@ -148,10 +148,15 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
          id = get_id_from_title(anime)
          avalible_sonnar = False
 
-        if season is not None and episode is not None:
+        if season and episode is not None:
            time.sleep(10)
            episode_data = get_metadata_episode(id, season, episode)
            data.append(episode_data)
+
+        elif season is not None and episode is None:
+          time.sleep(10)
+          season_data = get_metadata_season(id, season)
+          data.append(season_data) 
 
         else:
            anime_data = get_metadata_show(id)
@@ -174,6 +179,12 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
      if season_number is not None and episode_number is not None:
         time.sleep(10)
         anime_data = get_metadata_episode(id, season_number, episode_number)
+
+     elif season_number is not None and episode_number is None:
+          time.sleep(10)
+          season_data = get_metadata_season(id, season)
+          data.append(season_data) 
+
      else:
         anime_data = get_metadata_show(id)
      
