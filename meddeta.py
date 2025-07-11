@@ -75,14 +75,47 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
         if response.status_code != 200:
             log(f"Failed to remove '{series_title}': {response.status_code} - {response.text}")
 
+    def get_metadata_show(show_id):
+       url = f"{SONARR_URL}/api/v3/series/{show_id}"
+       response = requests.get(url, headers=HEADERS)
+       response.raise_for_status()
+       metadata = response.json()
+       anime_data = {
+           "title": metadata.get('title', 'Unknown Title'),
+           "description": metadata.get('overview', 'No description available.'),
+           "year": metadata.get('year', 'Unknown Year'),
+           "genres": ', '.join(metadata.get('genres', [])),
+           "status": metadata.get('status', 'Unknown Status'),
+           "rating": metadata.get('ratings', {}).get('value', 'N/A'),
+           "poster_url": next((img['remoteUrl'] for img in metadata.get('images', []) if img.get('coverType') == 'poster'), None)
+       }
+
+       return anime_data
+
+    def get_metadata_episode(show_id, season_number, episode_number):
+       url = f"{SONARR_URL}/api/v3/episode?seriesId={show_id}"
+       response = requests.get(url, headers=HEADERS)
+       response.raise_for_status()
+       episodes = response.json()
+       for ep in episodes:
+           if ep["seasonNumber"] == season_number and ep["episodeNumber"] == episode_number:
+               episode_data = {
+                   "title": ep.get("title", 'Unknown Title'),
+                   "season": season_number,
+                   "episode": episode_number,
+                   "description": ep.get("overview", 'No description available.'),
+                   "airDate": ep.get("airDate", 'Unknown Air Date'),
+               }
+               return episode_data
+
     if isinstance(series_title, list):
      avalible_sonnar = True
-     episodes_data = []
+     data = []
 
      for serie in series_title:
         anime = serie['anime']
-        season = serie['season']
-        episode = serie['episode']
+        season = serie.get('season', None)   
+        episode = serie.get('episode', None) 
 
         id = get_id_from_title(anime)
 
@@ -91,28 +124,21 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
          id = get_id_from_title(anime)
          avalible_sonnar = False
 
+        if season is not None and episode is not None:
+           print(f"looking for an episdoe s: {season}. e:{episode}")
+           time.sleep(10)
+           episode_data = get_metadata_episode(id, season, episode)
+           data.append(episode_data)
 
-        url = f"{SONARR_URL}/api/v3/episode?seriesId={id}"
-        response = requests.get(url, headers=HEADERS)
-        response.raise_for_status()
-        episodes = response.json() 
-
-        for ep in episodes:
-            if ep["seasonNumber"] == season and ep["episodeNumber"] == episode:
-                episode_data = {
-                    "title": ep.get("title", 'Unknown Title'),
-                    "season": season,
-                    "episode": episode,
-                    "description": ep.get("overview", 'No description available.'),
-                    "airDate": ep.get("airDate", 'Unknown Air Date'),
-                }
-
-                episodes_data.append(episode_data)
+        else:
+           print(f"looking for anime {anime}")
+           anime_data = get_metadata_show(id)
+           data.append(anime_data)   
 
      if not avalible_sonnar:
         remove_from_sonnar(anime)   
         
-     return  episodes_data        
+     return  data        
 
     else: 
      avalible_sonnar = True
@@ -125,39 +151,14 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
 
      if season_number is not None and episode_number is not None:
         time.sleep(10)
-        url = f"{SONARR_URL}/api/v3/episode?seriesId={id}"
-        response = requests.get(url, headers=HEADERS)
-        response.raise_for_status()
-        episodes = response.json()
-        for ep in episodes:
-            if ep["seasonNumber"] == season_number and ep["episodeNumber"] == episode_number:
-                episode_data = {
-                    "title": ep.get("title", 'Unknown Title'),
-                    "season": season_number,
-                    "episode": episode_number,
-                    "description": ep.get("overview", 'No description available.'),
-                    "airDate": ep.get("airDate", 'Unknown Air Date'),
-                }
-                if not avalible_sonnar:
-                    remove_from_sonnar(series_title)
-                return episode_data
+        anime_data = get_metadata_episode(id, season_number, episode_number)
      else:
-        url = f"{SONARR_URL}/api/v3/series/{id}"
-        response = requests.get(url, headers=HEADERS)
-        response.raise_for_status()
-        metadata = response.json()
-        anime_data = {
-            "title": metadata.get('title', 'Unknown Title'),
-            "description": metadata.get('overview', 'No description available.'),
-            "year": metadata.get('year', 'Unknown Year'),
-            "genres": ', '.join(metadata.get('genres', [])),
-            "status": metadata.get('status', 'Unknown Status'),
-            "rating": metadata.get('ratings', {}).get('value', 'N/A'),
-            "poster_url": next((img['remoteUrl'] for img in metadata.get('images', []) if img.get('coverType') == 'poster'), None)
-        }
-        if not avalible_sonnar:
+        anime_data = get_metadata_show(id)
+     
+     if not avalible_sonnar:
             remove_from_sonnar(series_title)
-        return anime_data
+
+     return anime_data       
 
 def save_to_json(data, filename):
     import json, os
