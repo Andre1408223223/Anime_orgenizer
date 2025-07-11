@@ -3,3 +3,4 @@ config.py
 __pycache__
 logs.txt
 metadata.json
+shows.db
