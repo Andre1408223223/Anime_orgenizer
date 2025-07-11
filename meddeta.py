@@ -108,6 +108,30 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
                }
                return episode_data
 
+    def get_metadata_season(show_id, target_season_number):
+     url = f"{SONARR_URL}/api/v3/series/{show_id}"
+     response = requests.get(url, headers=HEADERS)
+     response.raise_for_status()
+     metadata = response.json()
+ 
+     seasons = metadata.get('seasons', [])
+     for season in seasons:
+         season_num = int(season.get('seasonNumber', -1))
+ 
+         if season_num == int(target_season_number):
+             statistics = season.get('statistics', {})
+             total_episodes = int(statistics.get('totalEpisodeCount', 0))
+             episode_file_count = int(statistics.get('episodeFileCount', 0))
+             percent_of_episodes = float(statistics.get('percentOfEpisodes', 0.0))
+ 
+             # Return as a dictionary for clarity
+             return {
+                 'season_number': season_num,
+                 'total_episodes': total_episodes,
+             }
+ 
+     return None
+
     if isinstance(series_title, list):
      avalible_sonnar = True
      data = []
