@@ -125,13 +125,11 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
          avalible_sonnar = False
 
         if season is not None and episode is not None:
-           print(f"looking for an episdoe s: {season}. e:{episode}")
            time.sleep(10)
            episode_data = get_metadata_episode(id, season, episode)
            data.append(episode_data)
 
         else:
-           print(f"looking for anime {anime}")
            anime_data = get_metadata_show(id)
            data.append(anime_data)   
 
