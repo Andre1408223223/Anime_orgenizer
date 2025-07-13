@@ -34,40 +34,65 @@ data = [] """
 
 
 data.append({'anime': anime})
+data.append({'anime': anime, 'season': season,})
 
 meta = get_metadata_sonnar(data)
 
 print(meta) """
 
 
-meta = [{'title': 'A Woman from the Past Appeared. Tomochika is Shocked to Her Core...', 'season': 1, 'episode': 10, 'description': 'Yogiri senses the gaze and murderous intent of someone different. To lure out the culprit, he heads into the city with Tomochika.', 'airDate': '2024-03-08'}, 
+""" meta = [{'title': 'A Woman from the Past Appeared. Tomochika is Shocked to Her Core...', 'season': 1, 'episode': 10, 'description': 'Yogiri senses the gaze and murderous intent of someone different. To lure out the culprit, he heads into the city with Tomochika.', 'airDate': '2024-03-08'}, 
         {'title': 'My Guardian Angel Is So Overpowered, This Other World Is a Piece of Cake!', 'season': 1, 'episode': 2, 'description': 'Yogiri and Tomochika search for their classmates and arrive at a nearby town. Inside the city walls, the two meet a seemingly kind beastkin who has ulterior motives.', 'airDate': '2024-01-12'},
         {'title': 'My Instant Death Ability Is Overpowered', 'description': "Awaking to absolute chaos and carnage while on a school trip, Yogiri Takatou discovers that everyone in his class has been transported to another world! He had somehow managed to sleep through the entire ordeal himself, missing out on the Gift — powers bestowed upon the others by a mysterious Sage who appeared to transport them. Even worse, he and another classmate were ruthlessly abandoned by their friends, left as bait to distract a nearby dragon. Although not terribly bothered by the thought of dying, he reluctantly decides to protect his lone companion. After all, a lowly Level 1000 monster doesn't stand a chance against his secret power to invoke Instant Death with a single thought! If he can stay awake long enough to bother using it, that is...", 'year': 2024, 'genres': 'Adventure, Animation, Anime, Comedy, Fantasy', 'status': 'ended', 'rating': 6.2, 'poster_url': 'https://artworks.thetvdb.com/banners/v4/series/427883/posters/658b260f5cea0.jpg'}]
+ """
 
-processed_entries = []
+meta = [{'title': 'A Woman from the Past Appeared. Tomochika is Shocked to Her Core...', 'season': 1, 'episode': 10, 'description': 'Yogiri senses the gaze and murderous intent of someone different. To lure out the culprit, he heads into the city with Tomochika.', 'airDate': '2024-03-08'},
+        {'title': 'My Guardian Angel Is So Overpowered, This Other World Is a Piece of Cake!', 'season': 1, 'episode': 2, 'description': 'Yogiri and Tomochika search for their classmates and arrive at a nearby town. Inside the city walls, the two meet a seemingly kind beastkin who has ulterior motives.', 'airDate': '2024-01-12'},
+        {'title': 'My Instant Death Ability Is Overpowered', 'description': "Awaking to absolute chaos and carnage while on a school trip, Yogiri Takatou discovers that everyone in his class has been transported to another world! He had somehow managed to sleep through the entire ordeal himself, missing out on the Gift — powers bestowed upon the others by a mysterious Sage who appeared to transport them. Even worse, he and another classmate were ruthlessly abandoned by their friends, left as bait to distract a nearby dragon. Although not terribly bothered by the thought of dying, he reluctantly decides to protect his lone companion. After all, a lowly Level 1000 monster doesn't stand a chance against his secret power to invoke Instant Death with a single thought! If he can stay awake long enough to bother using it, that is...", 'year': 2024, 'genres': 'Adventure, Animation, Anime, Comedy, Fantasy', 'status': 'ended', 'rating': 6.2, 'poster_url': 'https://artworks.thetvdb.com/banners/v4/series/427883/posters/658b260f5cea0.jpg'},
+        {'season': 1, 'total_episodes': 12}]
+        
+
+        
+shows = []
+seasons = []
+episodes = []
 
 for entry in meta:
     genres = entry.get('genres', None)
+    season = entry.get('season', None)
+    episdoe = entry.get('episode', None)
     
     if genres:
-        processed_entries.append({
-            "type": "show",
+        # show
+        entry = {
             "title": entry.get('title', 'No title'),
             "description": entry.get('description', 'No description'),
             "year": entry.get('year', 'Unknown year'),
             "genres": entry.get('genres', 'Unknown genres'),
             "rating": entry.get('rating', 'No rating'),
             "poster_url": entry.get('poster_url', 'No poster URL')
-        })
-    else:
-        processed_entries.append({
-            "type": "episode",
+        }
+        shows.append(entry)
+
+    elif season is not None and episdoe is not None:
+        # Episdoe
+        entry = {
             "title": entry.get('title', 'No title'),
             "episode_number": entry.get('episode', 'N/A'),
             "description": entry.get('description', 'No description'),
             "air_date": entry.get('airDate', 'Unknown date')
-        })
+        }
+
+        episodes.append(entry)
+
+    else:
+        # Season
+        entry = {
+            'season': entry.get('season', 'N/A'),
+            'total_episodes': entry.get('total_episodes', 'N/A')
+        }
+
+        seasons.append(entry)
 
 
-with open("processed_entries.json", "w") as json_file:
-    json.dump(processed_entries, json_file, indent=4)
+print(seasons)
