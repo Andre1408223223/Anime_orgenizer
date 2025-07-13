@@ -126,7 +126,7 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
  
              # Return as a dictionary for clarity
              return {
-                 'season_number': season_num,
+                 'season': season_num,
                  'total_episodes': total_episodes,
              }
  
@@ -149,11 +149,13 @@ def get_metadata_sonnar(series_title, season_number=None, episode_number=None):
          avalible_sonnar = False
 
         if season and episode is not None:
+           #Episdoe
            time.sleep(10)
            episode_data = get_metadata_episode(id, season, episode)
            data.append(episode_data)
 
         elif season is not None and episode is None:
+          #Season
           time.sleep(10)
           season_data = get_metadata_season(id, season)
           data.append(season_data) 
